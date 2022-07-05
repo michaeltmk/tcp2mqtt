@@ -1,0 +1,5 @@
+version: 1
+mqtt:
+  schema: |
+    {"{{.netData.IMEI}}":[{"body":{{.netData}},"ipFrom":{{.ip}},"port":{{.port}}}]}
+  
