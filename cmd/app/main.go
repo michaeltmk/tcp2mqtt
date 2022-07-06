@@ -25,7 +25,7 @@ func openSocket(port string, closeConnection bool, topic string, broker string, 
 	if err != nil {
 		log.Fatalln(err)
 	}
-	PORT := "localhost:" + port
+	PORT := "0.0.0.0:" + port
 	l, err := net.Listen("tcp4", PORT)
 	log.Printf("Serving %s\n", l.Addr().String())
 	if err != nil {
