@@ -1,5 +1,8 @@
 version: 1
 mqtt:
-  schema: |
-    {"{{.netData.IMEI | printf "%.f"}}":[{"addr":"{{.netData.addr}}","cmd":"{{.netData.cmd}}","count":"{{.netData.count}}","ipFrom":"{{.ip}}","port":"{{.port}}"}]}
-  
+  schema: 
+    message: |
+      {{. | fjson}}
+    username: |
+      {{.IMEI | printf "%.f" -}}
+    password: ""
