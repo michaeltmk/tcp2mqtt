@@ -22,11 +22,11 @@ func openSocket(port string, closeConnection bool, topic string, broker string, 
 	if err != nil {
 		log.Fatalln(err)
 	}
-	usernameSchema, err := config.GetMqttSchema()
+	usernameSchema, err := config.GetUsernameSchema()
 	if err != nil {
 		log.Fatalln(err)
 	}
-	passwordSchema, err := config.GetMqttSchema()
+	passwordSchema, err := config.GetPasswordSchema()
 	if err != nil {
 		log.Fatalln(err)
 	}
