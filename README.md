@@ -1,144 +1,49 @@
-## Transforming TCP sockets to MQTT with Go
+# TCP2MQTT
 
-In the last post we've created one proxy to upgrade one legacy application that sends raw TCP sockets to a HTTP server without changing the original application.
+A proxy to recieve raw TCP sockets and send to a MQTT broker with customable format.
+Froked from [tcp2mqtt](https://github.com/gonzalo123/tcp2mqtt)
 
-Now we're going to do the same but instead sending HTTP request we're going to connect to a MQTT broker. Probably try to change the legacy application to connect to a MQTT broker can be a nightmare but with with this approach is pretty straightforward.
+It is a go client that reads the TCP sockets and send the information to the MQTT broker.
+It support json format as TCP sockets foramt only.
 
-The idea is the same. We're going to send our TCP sockets to localhost. Then we're going to build a go client that reads the TCP sockets and send the information to the MQTT broker.
-
-We're going to use Mosquitto as MQTT broker. We can set up easily with docker:
-
+## Getting Started
+1. Edit the coustomated schema in config.yaml file
+	```yaml
+	version: 1
+	mqtt:
+	schema: 
+		message: |
+		{{. | fjson}}
+		username: |
+		{{.IMEI | printf "%.f" -}}
+		password: ""
+	```
+2. Enter the MQTT broker configuration in environment.BROKER in docker-compose.yml
 ```yaml
-version: '2'
-
-services:
-  mosquitto:
-    image: eclipse-mosquitto
-    hostname: mosquitto
-    container_name: mosquitto
-    build:
-      context: .docker/mosquitto
-      dockerfile: Dockerfile
-    expose:
-      - "1883"
-      - "9001"
-    ports:
-      - "1883:1883"
-      - "9001:9001"
+environment:
+	- CONFIG_PATH=/opt/config.yaml
+	- BROKER=tcp://localhost:1883
 ```
+run ```docker-compose up --build```
 
-We can also set up our Mosquitto server with user and password with mosquitto.conf and users.txt. For this example we're going to use the credentials: username:password
 
-```
-username:$6$6jOr4vVqaKxisTls$4KVYh8NBZdP+z4S/YbuoSHKlJ+5F1DxiE7XtWWXVHQ+7PlCI+b6LhqSbj8lL45HnGlo4D5t0AVFYrYGjb5lTxg==
-```
 
-Our Go program is very similar than the http version:
+## go-template
+We use go-template to generate the MQTT message.
+There is a customated function imported into the template engine.
 
 ```go
-package main
-
-import (
-	"bufio"
-	"encoding/json"
-	"flag"
-	mqtt "github.com/eclipse/paho.mqtt.golang"
-	"log"
-	"net"
-	"os"
-	"strings"
-	"time"
-)
-
-func main() {
-	port, closeConnection, topic, broker := parseFlags()
-	openSocket(*port, *closeConnection, *topic, *broker, onMessage)
-}
-
-func openSocket(port string, closeConnection bool, topic string, broker string, onMessage func(url string, topic string, buffer string)) {
-	PORT := "localhost:" + port
-	l, err := net.Listen("tcp4", PORT)
-	log.Printf("Serving %s\n", l.Addr().String())
+// orderedMarshalString marshals a given value into JSON with ordered keys
+func orderedMarshalString(v any) (string, error) {
+	b, err := encoder.Encode(v, encoder.SortMapKeys)
 	if err != nil {
-		log.Fatalln(err)
+		return "", err
 	}
-	defer l.Close()
-
-	for {
-		c, err := l.Accept()
-		if err != nil {
-			log.Fatalln(err)
-		}
-		go handleConnection(c, closeConnection, topic, broker, onMessage)
-	}
-}
-
-func createClientOptions(url string) *mqtt.ClientOptions {
-	opts := mqtt.NewClientOptions()
-	opts.AddBroker(url)
-	opts.SetUsername(os.Getenv("MQTT_USERNAME"))
-	opts.SetPassword(os.Getenv("MQTT_PASSWORD"))
-	return opts
-}
-
-func connect(url string) mqtt.Client {
-	opts := createClientOptions(url)
-	client := mqtt.NewClient(opts)
-	token := client.Connect()
-	for !token.WaitTimeout(3 * time.Second) {
-	}
-	if err := token.Error(); err != nil {
-		log.Fatal(err)
-	}
-	return client
-}
-
-func onMessage(url string, topic string, buffer string) {
-	client := connect(url)
-	client.Publish(topic, 0, false, buffer)
-}
-
-func parseFlags() (*string, *bool, *string, *string) {
-	port := flag.String("port", "7777", "port number")
-	closeConnection := flag.Bool("close", true, "Close connection")
-	topic := flag.String("topic", "topic", "mqtt topic")
-	broker := flag.String("broker", "tcp://localhost:1883", "mqtt topic")
-	flag.Parse()
-
-	return port, closeConnection, topic, broker
-}
-
-func handleConnection(c net.Conn, closeConnection bool, topic string, broker string, onMessage func(url string, topic string, buffer string)) {
-	log.Printf("Accepted connection from %s\n", c.RemoteAddr().String())
-	for {
-		ip, port, err := net.SplitHostPort(c.RemoteAddr().String())
-		netData, err := bufio.NewReader(c).ReadString('\n')
-		if err != nil {
-			log.Println(err)
-		}
-
-		message := map[string]interface{}{
-			"body":   strings.TrimSpace(netData),
-			"ipFrom": ip,
-			"port":   port,
-		}
-
-		log.Printf("sending to topic %s message:%s\n", topic, message)
-		bytesRepresentation, err := json.Marshal(message)
-		if err != nil {
-			log.Println(err)
-		} else {
-			onMessage(broker, topic, string(bytesRepresentation))
-		}
-
-		if closeConnection {
-			c.Close()
-			return
-		}
-	}
-	c.Close()
+	return string(b), nil
 }
 ```
-
-And that's all. Our legacy application can now speak MQTT without problems
-
+``` go
+template.FuncMap{
+	"fjson": orderedMarshalString,
+}
+```
