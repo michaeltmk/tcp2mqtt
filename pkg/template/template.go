@@ -17,7 +17,7 @@ func orderedMarshalString(v any) (string, error) {
 	return string(b), nil
 }
 
-// ApplyTemplate gets template of an eventID and applies it
+// ApplyTemplate gets template of an TCP socket package and applies it
 func ApplyTemplate(templateData, data []byte) ([]byte, error) {
 	t, err := template.New("template").Funcs(
 		template.FuncMap{
