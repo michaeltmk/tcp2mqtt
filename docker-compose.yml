@@ -1,16 +1,21 @@
 version: '2'
 
 services:
-  mosquitto:
-    image: eclipse-mosquitto
-    hostname: mosquitto
-    container_name: mosquitto
-    build:
-      context: .docker/mosquitto
-      dockerfile: Dockerfile
-    expose:
-      - "1883"
-      - "9001"
-    ports:
-      - "1883:1883"
-      - "9001:9001"
+    tcp2mqtt:
+      build: .
+      environment:
+        - CONFIG_PATH=/opt/config.yaml
+        - BROKER=tcp://localhost:1883
+      ports:
+        - 7777:7777
+      command:
+        # - ./app 
+        # - -topic=v1/devices/me/telemetry
+        # - -broker=tcp://mqtt.varadise.cloud:8883
+        - sh
+        - -c
+        - "./app -topic=v1/devices/me/telemetry -broker=$$BROKER"
+      volumes:
+        - .:/opt
+      network_mode: host
+      restart: always
