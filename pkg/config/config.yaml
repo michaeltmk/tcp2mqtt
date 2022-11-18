@@ -1,9 +1,9 @@
 version: 1
 mqtt:
-  schema: 
+  schema:
+    messagetype: json
     message: |
       {"rawMsg":{{. | fjson}},"ipFrom":"{{.ip}}","port":"{{.port}}"}
     username: |
       {{.IMEI | printf "%.f"}}
     password: |
-      

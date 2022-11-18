@@ -9,7 +9,7 @@ services:
       ports:
         - 7777:7777
       command:
-        # - ./app 
+        # - ./app
         # - -topic=v1/devices/me/telemetry
         # - -broker=tcp://mqtt.varadise.cloud:8883
         - sh
