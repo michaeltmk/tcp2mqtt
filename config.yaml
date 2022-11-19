@@ -1,6 +1,7 @@
 version: 1
 mqtt:
-  schema: 
+  schema:
+    messageType: csv
     message: |
       {{. | fjson}}
     username: |

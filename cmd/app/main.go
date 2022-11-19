@@ -30,6 +30,10 @@ func openSocket(port string, closeConnection bool, topic string, broker string, 
 	if err != nil {
 		log.Fatalln(err)
 	}
+	messagetypeSchema, err := config.GetMessageTypeSchema()
+	if err != nil {
+		log.Fatalln(err)
+	}
 	PORT := "0.0.0.0:" + port
 	l, err := net.Listen("tcp4", PORT)
 	log.Printf("Serving %s\n", l.Addr().String())
@@ -41,9 +45,10 @@ func openSocket(port string, closeConnection bool, topic string, broker string, 
 	for {
 		c, err := l.Accept()
 		if err != nil {
-			log.Fatalln(err)
+			log.Println(err)
+			return
 		}
-		go handleConnection(c, msgSchema, usernameSchema, passwordSchema, closeConnection, topic, broker, onMessage)
+		go handleConnection(c, msgSchema, usernameSchema, passwordSchema, messagetypeSchema, closeConnection, topic, broker, onMessage)
 	}
 }
 
@@ -83,7 +88,7 @@ func parseFlags() (*string, *bool, *string, *string) {
 	return port, closeConnection, topic, broker
 }
 
-func handleConnection(c net.Conn, msgSchema []byte, usernameSchema []byte, passwordSchema []byte, closeConnection bool, topic string, broker string, onMessage func(url string, username string, password string, topic string, buffer string)) {
+func handleConnection(c net.Conn, msgSchema []byte, usernameSchema []byte, passwordSchema []byte, messagetypeSchema []byte, closeConnection bool, topic string, broker string, onMessage func(url string, username string, password string, topic string, buffer string)) {
 	log.Printf("Accepted connection from %s\n", c.RemoteAddr().String())
 	for {
 		ip, port, err := net.SplitHostPort(c.RemoteAddr().String())
@@ -95,7 +100,7 @@ func handleConnection(c net.Conn, msgSchema []byte, usernameSchema []byte, passw
 			log.Printf("error reading netData: %v", err)
 		}
 		log.Printf("netData: %v", netData)
-		handledMessage, err := message.HandleWholeMsg(ip, port, netData, msgSchema, usernameSchema, passwordSchema)
+		handledMessage, err := message.HandleWholeMsg(ip, port, netData, msgSchema, usernameSchema, passwordSchema, messagetypeSchema)
 		if err != nil {
 			log.Println(err)
 		} else {

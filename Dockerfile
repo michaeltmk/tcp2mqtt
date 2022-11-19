@@ -13,4 +13,3 @@ COPY --from=builder /app/bin/app ./app
 # RUN apt install -y --no-install-recommends ca-certificates
 # RUN update-ca-certificates
 CMD ./app
-
