@@ -28,3 +28,10 @@ func TestGetPasswordSchema(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, string(``), strings.TrimSpace(string(result)))
 }
+
+func TestGetMessageTypeSchema(t *testing.T) {
+	os.Setenv("CONFIG_PATH", "config.yaml")
+	result, err := GetMessageTypeSchema()
+	assert.NoError(t, err)
+	assert.Equal(t, string(`json`), strings.TrimSpace(string(result)))
+}

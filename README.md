@@ -11,7 +11,7 @@ It support json format as TCP sockets foramt only.
 	```yaml
 	version: 1
 	mqtt:
-	schema: 
+	schema:
 		message: |
 		{{. | fjson}}
 		username: |

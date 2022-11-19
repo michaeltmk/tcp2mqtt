@@ -2,6 +2,8 @@ package message
 
 import (
 	"encoding/json"
+	"fmt"
+	"strconv"
 	"strings"
 	"tcp2mqtt/pkg/template"
 )
@@ -12,7 +14,7 @@ type HandledMessage struct {
 	Password string
 }
 
-//use template to hangle username
+// use template to hangle username
 func handleUsername(netDataJS map[string]any, schema []byte) ([]byte, error) {
 	bytesRepresentation, err := json.Marshal(netDataJS)
 	if err != nil {
@@ -25,7 +27,34 @@ func handleUsername(netDataJS map[string]any, schema []byte) ([]byte, error) {
 	return result, nil
 }
 
-//use template to hangle password
+type csvError struct {
+	s string
+}
+
+func (e *csvError) Error() string {
+	return e.s
+}
+
+// csv2map converts csv to map
+func csv2map(csvStr string) (map[string]any, error) {
+	elementMap := make(map[string]any)
+	if csvStr[0] == '{' {
+		err := &csvError{"csv2map: csvStr is not csv"}
+		return map[string]any{}, err
+	}
+	s := strings.Split(csvStr, ",")
+	for i := 0; i < len(s); i += 1 {
+		num, err := strconv.ParseFloat(s[i], 64)
+		if err != nil {
+			elementMap[fmt.Sprintf("key%d", i+1)] = s[i]
+		} else {
+			elementMap[fmt.Sprintf("key%d", i+1)] = num
+		}
+	}
+	return elementMap, nil
+}
+
+// use template to hangle password
 func handlePassword(netDataJS map[string]any, schema []byte) ([]byte, error) {
 	bytesRepresentation, err := json.Marshal(netDataJS)
 	if err != nil {
@@ -38,7 +67,7 @@ func handlePassword(netDataJS map[string]any, schema []byte) ([]byte, error) {
 	return result, nil
 }
 
-//use template to hangle msg
+// use template to hangle msg
 func handleMsg(ip string, port string, netDataJS map[string]any, schema []byte) ([]byte, error) {
 	bytesRepresentation, err := json.Marshal(netDataJS)
 	if err != nil {
@@ -58,12 +87,20 @@ func handleMsg(ip string, port string, netDataJS map[string]any, schema []byte) 
 	return json.Marshal(msgData)
 }
 
-func HandleWholeMsg(ip string, port string, netData string, msgSchema []byte, usernameSchema []byte, passwordSchema []byte) (HandledMessage, error) {
+func HandleWholeMsg(ip string, port string, netData string, msgSchema []byte, usernameSchema []byte, passwordSchema []byte, messagetypeSchema []byte) (HandledMessage, error) {
 	netDataJS := make(map[string]any)
-	err := json.Unmarshal([]byte(strings.TrimSpace(netData)), &netDataJS)
+	var err error
 	nilHandledMessage := HandledMessage{}
-	if err != nil {
-		return nilHandledMessage, err
+	if string(messagetypeSchema) == "csv" {
+		netDataJS, err = csv2map(netData)
+		if err != nil {
+			return nilHandledMessage, err
+		}
+	} else {
+		err := json.Unmarshal([]byte(strings.TrimSpace(netData)), &netDataJS)
+		if err != nil {
+			return nilHandledMessage, err
+		}
 	}
 	msg, err := handleMsg(ip, port, netDataJS, msgSchema)
 	if err != nil {
