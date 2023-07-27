@@ -5,6 +5,7 @@ import (
 	"flag"
 	"log"
 	"net"
+	"runtime"
 	"tcp2mqtt/pkg/config"
 	"tcp2mqtt/pkg/message"
 	"time"
@@ -76,13 +77,14 @@ func onMessage(url string, username string, password string, topic string, buffe
 	client := connect(url, username, password)
 	token := client.Publish(topic, 2, false, buffer)
 	log.Println(token)
+	defer client.Disconnect(250)
 }
 
 func parseFlags() (*string, *bool, *string, *string) {
 	port := flag.String("port", "7777", "port number")
 	closeConnection := flag.Bool("close", true, "Close connection")
 	topic := flag.String("topic", "topic", "mqtt topic")
-	broker := flag.String("broker", "tcp://localhost:1883", "mqtt topic")
+	broker := flag.String("broker", "tcp://localhost:1883", "mqtt server")
 	flag.Parse()
 
 	return port, closeConnection, topic, broker
@@ -109,7 +111,9 @@ func handleConnection(c net.Conn, msgSchema []byte, usernameSchema []byte, passw
 			log.Printf("sent")
 		}
 		if closeConnection {
+			log.Printf("Closing connection from %s\n", c.RemoteAddr().String())
 			c.Close()
+			runtime.GC()
 			return
 		}
 	}

@@ -15,11 +15,7 @@ type HandledMessage struct {
 }
 
 // use template to hangle username
-func handleUsername(netDataJS map[string]any, schema []byte) ([]byte, error) {
-	bytesRepresentation, err := json.Marshal(netDataJS)
-	if err != nil {
-		return nil, err
-	}
+func handleUsername(bytesRepresentation []byte, schema []byte) ([]byte, error) {
 	result, err := template.ApplyTemplate(schema, bytesRepresentation)
 	if err != nil {
 		return nil, err
@@ -48,18 +44,14 @@ func csv2map(csvStr string) (map[string]any, error) {
 		if err != nil {
 			elementMap[fmt.Sprintf("key%d", i+1)] = s[i]
 		} else {
-			elementMap[fmt.Sprintf("key%d", i+1)] = num
+			elementMap[fmt.Sprintf("key%d", i+1)] = &num
 		}
 	}
 	return elementMap, nil
 }
 
 // use template to hangle password
-func handlePassword(netDataJS map[string]any, schema []byte) ([]byte, error) {
-	bytesRepresentation, err := json.Marshal(netDataJS)
-	if err != nil {
-		return nil, err
-	}
+func handlePassword(bytesRepresentation []byte, schema []byte) ([]byte, error) {
 	result, err := template.ApplyTemplate(schema, bytesRepresentation)
 	if err != nil {
 		return nil, err
@@ -68,11 +60,7 @@ func handlePassword(netDataJS map[string]any, schema []byte) ([]byte, error) {
 }
 
 // use template to hangle msg
-func handleMsg(ip string, port string, netDataJS map[string]any, schema []byte) ([]byte, error) {
-	bytesRepresentation, err := json.Marshal(netDataJS)
-	if err != nil {
-		return nil, err
-	}
+func handleMsg(ip string, port string, bytesRepresentation []byte, schema []byte) ([]byte, error) {
 	handledNetData, err := template.ApplyTemplate(schema, bytesRepresentation)
 	if err != nil {
 		return nil, err
@@ -102,15 +90,19 @@ func HandleWholeMsg(ip string, port string, netData string, msgSchema []byte, us
 			return nilHandledMessage, err
 		}
 	}
-	msg, err := handleMsg(ip, port, netDataJS, msgSchema)
+	bytesRepresentation, err := json.Marshal(netDataJS)
 	if err != nil {
 		return nilHandledMessage, err
 	}
-	username, err := handleUsername(netDataJS, usernameSchema)
+	msg, err := handleMsg(ip, port, bytesRepresentation, msgSchema)
 	if err != nil {
 		return nilHandledMessage, err
 	}
-	password, err := handlePassword(netDataJS, passwordSchema)
+	username, err := handleUsername(bytesRepresentation, usernameSchema)
+	if err != nil {
+		return nilHandledMessage, err
+	}
+	password, err := handlePassword(bytesRepresentation, passwordSchema)
 	if err != nil {
 		return nilHandledMessage, err
 	}
