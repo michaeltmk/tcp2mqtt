@@ -76,13 +76,14 @@ func onMessage(url string, username string, password string, topic string, buffe
 	client := connect(url, username, password)
 	token := client.Publish(topic, 2, false, buffer)
 	log.Println(token)
+	defer client.Disconnect(250)
 }
 
 func parseFlags() (*string, *bool, *string, *string) {
 	port := flag.String("port", "7777", "port number")
 	closeConnection := flag.Bool("close", true, "Close connection")
 	topic := flag.String("topic", "topic", "mqtt topic")
-	broker := flag.String("broker", "tcp://localhost:1883", "mqtt topic")
+	broker := flag.String("broker", "tcp://localhost:1883", "mqtt server")
 	flag.Parse()
 
 	return port, closeConnection, topic, broker
