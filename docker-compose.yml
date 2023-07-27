@@ -1,11 +1,20 @@
 version: '2'
 
 services:
+    mosquitto:
+      image: eclipse-mosquitto
+      ports:
+        - 1883:1883
+      volumes:
+        - ./.docker/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+        - ./.docker/mosquitto/users.txt:/mosquitto/config/users.txt:ro
+      restart: always
+      command: mosquitto -p 1883 -v -c /mosquitto/config/mosquitto.conf
     tcp2mqtt:
       build: .
       environment:
         - CONFIG_PATH=/opt/config.yaml
-        - BROKER=tcp://localhost:1883
+        - BROKER=tcp://mosquitto:1883
       ports:
         - 7777:7777
       command:
@@ -17,5 +26,6 @@ services:
         - "./app -topic=v1/devices/me/telemetry -broker=$$BROKER"
       volumes:
         - .:/opt
-      network_mode: host
+      depends_on:
+        - mosquitto
       restart: always
