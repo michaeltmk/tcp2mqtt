@@ -18,7 +18,7 @@ func main() {
 		conn, _ := net.Dial("tcp", ":7777")
 		send(conn)
 		log.Printf("msg sent")
-		time.Sleep(10000000 * time.Microsecond)
+		time.Sleep(100000 * time.Microsecond)
 	}
 
 }

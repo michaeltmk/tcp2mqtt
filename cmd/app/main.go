@@ -5,6 +5,7 @@ import (
 	"flag"
 	"log"
 	"net"
+	"runtime"
 	"tcp2mqtt/pkg/config"
 	"tcp2mqtt/pkg/message"
 	"time"
@@ -110,7 +111,9 @@ func handleConnection(c net.Conn, msgSchema []byte, usernameSchema []byte, passw
 			log.Printf("sent")
 		}
 		if closeConnection {
+			log.Printf("Closing connection from %s\n", c.RemoteAddr().String())
 			c.Close()
+			runtime.GC()
 			return
 		}
 	}
