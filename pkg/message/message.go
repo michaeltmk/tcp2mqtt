@@ -23,6 +23,12 @@ func handleUsername(bytesRepresentation []byte, schema []byte) ([]byte, error) {
 	return result, nil
 }
 
+func clear[M ~map[K]V, K comparable, V any](m M) {
+    for k := range m {
+        delete(m, k)
+    }
+}
+
 type csvError struct {
 	s string
 }
@@ -34,6 +40,7 @@ func (e *csvError) Error() string {
 // csv2map converts csv to map
 func csv2map(csvStr string) (map[string]any, error) {
 	elementMap := make(map[string]any)
+	defer clear(elementMap)
 	if csvStr[0] == '{' {
 		err := &csvError{"csv2map: csvStr is not csv"}
 		return map[string]any{}, err
@@ -66,6 +73,7 @@ func handleMsg(ip string, port string, bytesRepresentation []byte, schema []byte
 		return nil, err
 	}
 	msgData := make(map[string]interface{})
+	defer clear(msgData)
 	err = json.Unmarshal(handledNetData, &msgData)
 	if err != nil {
 		return nil, err
@@ -77,6 +85,7 @@ func handleMsg(ip string, port string, bytesRepresentation []byte, schema []byte
 
 func HandleWholeMsg(ip string, port string, netData string, msgSchema []byte, usernameSchema []byte, passwordSchema []byte, messagetypeSchema []byte) (HandledMessage, error) {
 	netDataJS := make(map[string]any)
+	defer clear(netDataJS)
 	var err error
 	nilHandledMessage := HandledMessage{}
 	if string(messagetypeSchema) == "csv" {
