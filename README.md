@@ -48,17 +48,6 @@ It support json format as TCP sockets foramt only.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-### Built With
-
-**Remove this paragraph** This section should list any major frameworks/libraries used to bootstrap your project. At the end of this README document
-
-* [Next.js][Next-url]
-* [React][React-url]
-* [Vue][Vue-url]
-* [Gin][Gin-url]
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 <!-- GETTING STARTED -->
 ## Getting Started
 
