@@ -1,0 +1,9 @@
+version: 1
+mqtt:
+  schema:
+    messageType: csv
+    message: |
+      {{. | fjson}}
+    username: |
+      {{.IMEI | printf "%.f" -}}
+    password: ""
