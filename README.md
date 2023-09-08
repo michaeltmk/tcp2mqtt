@@ -42,8 +42,7 @@
 A proxy to recieve raw TCP sockets and send to a MQTT broker with customable format.
 Froked from [tcp2mqtt](https://github.com/gonzalo123/tcp2mqtt)
 
-It is a go client that reads the TCP sockets and send the information to the MQTT broker.
-It support json format as TCP sockets foramt only.
+Collect data from RTU through tcp and send data to thingsboard by MQTT with IMEI as username.
 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -81,24 +80,7 @@ run ```docker-compose up --build```
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-We use go-template to generate the MQTT message.
-There is a customated function imported into the template engine.
-
-```go
-// orderedMarshalString marshals a given value into JSON with ordered keys
-func orderedMarshalString(v any) (string, error) {
-	b, err := encoder.Encode(v, encoder.SortMapKeys)
-	if err != nil {
-		return "", err
-	}
-	return string(b), nil
-}
-```
-``` go
-template.FuncMap{
-	"fjson": orderedMarshalString,
-}
-```
+Connect TCP server and send data
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
