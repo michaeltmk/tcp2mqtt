@@ -80,8 +80,14 @@ func connect(url string, username string, password string) mqtt.Client {
 
 func onMessage(url string, username string, password string, topic string, buffer string) {
 	client := connect(url, username, password)
-	token := client.Publish(topic, 2, false, buffer)
-	log.Println(token)
+	t := client.Publish(topic, 1, true, buffer)
+	go func() {
+		_ = t.Wait() // Can also use '<-t.Done()' in releases > 1.2.0
+		if t.Error() != nil {
+			log.Printf("error in sending mqtt data: %v", t.Error()) // Use your preferred logging technique (or just fmt.Printf)
+		}
+	}()
+	log.Println(t)
 	defer client.Disconnect(250)
 }
 
