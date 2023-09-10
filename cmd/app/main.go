@@ -11,7 +11,6 @@ import (
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
-	"github.com/google/uuid"
 )
 
 func main() {
@@ -59,7 +58,6 @@ func createClientOptions(url string, username string, password string) *mqtt.Cli
 	opts.AddBroker(url)
 	opts.SetUsername(username)
 	opts.SetPassword(password)
-	opts.SetClientID(uuid.New().String())
 	// opts.SetKeepAlive(2* time.Minute)
 	opts.SetConnectRetry(true)
 	opts.SetConnectRetryInterval(500 * time.Millisecond)
