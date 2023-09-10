@@ -47,3 +47,12 @@ template.FuncMap{
 	"fjson": orderedMarshalString,
 }
 ```
+
+## stress test
+```bash
+docker-compose up --build
+cd tester
+go run tcpSender.go >> pub.log 2>&1 &
+docker exec -it tcp2mqtt_mosquitto_1 mosquitto_sub -t v1/devices/me/telemetry -i client >> sub.log 2>&1
+```
+Then you may check the pub.log and sub.log to see if there is any error.
